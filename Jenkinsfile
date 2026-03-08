@@ -112,6 +112,12 @@ pipeline {
                 '''
             }
         }
+        stage('Build Docker Image') {
+    steps {
+        sh '''
+        docker build -t cicd-lab-app:latest .
+        '''
+    }
     }
 
     post {
