@@ -114,9 +114,7 @@ pipeline {
         }
         stage('Build Docker Image') {
     steps {
-        sh '''
-        docker build -t cicd-lab-app:latest .
-        '''
+         sh 'kubectl apply -f deployment.yaml'
     }
     }
 
