@@ -90,4 +90,4 @@ jobs:
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
       - name: Notify on failure
         run: |
-          echo "print webhook URL: \`${{ secrets.SLACK_WEBHOOK_URL }} \`" >> $GITHUB_STEP_SUMMARY
+          echo "print webhook URL: \`${{ vars.SLACK_WEBHOOK_URL }} \`" >> $GITHUB_STEP_SUMMARY
