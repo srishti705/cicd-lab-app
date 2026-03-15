@@ -89,6 +89,5 @@ jobs:
           echo "**Tag:** \`${{ steps.meta.outputs.run_number }}-${{ steps.meta.outputs.sha_short }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
       - name: Notify on failure
-        if: failure()
         run: |
           echo "print webhook URL: \`${{ secrets.SLACK_WEBHOOK_URL }} \`" >> $GITHUB_STEP_SUMMARY
