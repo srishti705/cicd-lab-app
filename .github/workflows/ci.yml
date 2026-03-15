@@ -1,0 +1,74 @@
+name: CI - Test and Build
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'              # Cache pip downloads automatically!
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        run: |
+          python -m pytest tests/ -v --tb=short --junitxml=test-results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()              # Upload even if tests fail
+        with:
+          name: test-results
+          path: test-results.xml
+
+  build-image:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test              # Only runs if 'test' job passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Git metadata
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "run_number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --label "git.commit=${{ steps.meta.outputs.sha_short }}" \
+            -t cicd-lab-app:${{ steps.meta.outputs.run_number }}-${{ steps.meta.outputs.sha_short }} \
+            -t cicd-lab-app:latest \
+            .
+
+      - name: Smoke test container
+        run: |
+          CONTAINER_ID=$(docker run -d -p 9090:8080 cicd-lab-app:latest)
+          sleep 5
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9090/health)
+          docker stop $CONTAINER_ID
+          echo "Health check: HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || exit 1
+
+      - name: Image build summary
+        run: |
+          echo "## Docker Image Built ✅" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.meta.outputs.run_number }}-${{ steps.meta.outputs.sha_short }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
