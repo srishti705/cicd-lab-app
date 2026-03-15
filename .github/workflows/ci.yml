@@ -34,6 +34,22 @@ jobs:
         with:
           name: test-results
           path: test-results.xml
+  test-matrix:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+      fail-fast: false      # Run all versions even if one fails
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/ -v
 
   build-image:
     name: Build Docker Image
@@ -72,3 +88,7 @@ jobs:
           echo "## Docker Image Built ✅" >> $GITHUB_STEP_SUMMARY
           echo "**Tag:** \`${{ steps.meta.outputs.run_number }}-${{ steps.meta.outputs.sha_short }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "print webhook URL: \`${{ secrets.SLACK_WEBHOOK_URL }} \`" >> $GITHUB_STEP_SUMMARY
