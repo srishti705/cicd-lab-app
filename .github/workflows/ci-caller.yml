@@ -11,8 +11,8 @@ jobs:
   build-dev:
     uses: ./.github/workflows/reusable-build.yml    # Same repo = relative path
     with:
-      python-version: '3.11'
-      run-docker-build: true
+      #python-version: '3.11'
+      #run-docker-build: true
       image-tag-prefix: 'dev'
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
