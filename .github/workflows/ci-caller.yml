@@ -1,0 +1,34 @@
+name: CI Pipeline (uses reusable workflow)
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Call the reusable workflow for development builds
+  build-dev:
+    uses: ./.github/workflows/reusable-build.yml    # Same repo = relative path
+    with:
+      python-version: '3.11'
+      run-docker-build: true
+      image-tag-prefix: 'dev'
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Use the output from the reusable workflow
+  report:
+    needs: build-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show build results
+        run: |
+          echo "Image tag: ${{ needs.build-dev.outputs.image-tag }}"
+          echo "Test result: ${{ needs.build-dev.outputs.test-result }}"
+
+      - name: Post summary
+        run: |
+          echo "## CI Pipeline Complete 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ needs.build-dev.outputs.image-tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests:** ${{ needs.build-dev.outputs.test-result }}" >> $GITHUB_STEP_SUMMARY
