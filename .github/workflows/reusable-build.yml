@@ -6,17 +6,17 @@ on:
     inputs:
       python-version:
         description: 'Python version to use'
-        required: false
+        required: true
         type: string
         default: '3.11'
       run-docker-build:
         description: 'Whether to build Docker image'
-        required: false
+        required: true
         type: boolean
         default: true
       image-tag-prefix:
         description: 'Prefix for Docker image tag'
-        required: false
+        required: true
         type: string
         default: 'dev'
     secrets:
